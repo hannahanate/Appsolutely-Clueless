@@ -8,8 +8,10 @@ app.use(express.json());
 
 // Routes
 const tripRoutes = require("./routes/trips");
+const activityRoutes = require("./routes/activities");
 
 app.use("/api/trips", tripRoutes);
+app.use("/api", activityRoutes);
 
 // Api check
 app.get("/api/check", (req, res) => {
