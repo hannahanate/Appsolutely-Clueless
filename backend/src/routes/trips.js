@@ -27,21 +27,24 @@ router.get("/:id", (req, res) => {
 router.post("/", (req,res) => {
     console.log("Received body:", req.body);
 
-    const {name, destination, startDate, endDate, notes} = req.body;
+    const {name,destinationCity,destinationCountry,bookingRef,startDate,endDate,destinationPicture,destinationFlag} = req.body;
 
-    if (!name || !destination || !startDate || !endDate) {
+    if (!name || !destinationCity || !destinationCountry || !startDate || !endDate) {
         return res.status(400).json({
-            message: "Please fill out name, destination, start date and end date."
+            message: "Please fill out name, destination city and country, start date and end date."
         });
     }
 
     const newTrip = {
         id: trips.length + 1,
         name,
-        destination,
+        destinationCity,
+        destinationCountry,
+        bookingRef: bookingRef || null,
         startDate,
         endDate,
-        notes: notes || ""
+        destinationPicture,
+        destinationFlag
     };
 
     trips.push(newTrip);
@@ -61,13 +64,22 @@ router.put("/:id", (req,res) => {
         });
     }
 
-    const {name, destination, startDate, endDate, notes} = req.body;
+    const fields = [
+        "name",
+        "destinationCity",
+        "destinationCountry",
+        "bookingRef",
+        "startDate",
+        "endDate",
+        "destinationPicture",
+        "destinationFlag"
+    ];
 
-    trip.name = name || trip.name;
-    trip.destination = destination || trip.destination;
-    trip.startDate = startDate || trip.startDate;
-    trip.endDate = endDate || trip.endDate;
-    trip.notes = notes !== undefined ? notes : trip.notes;
+    for (const field of fields) {
+        if (req.body[field] !== undefined) {
+            trip[field] = req.body[field];
+        }
+    }
 
     res.json(trip);
 });
