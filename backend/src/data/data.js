@@ -2,18 +2,24 @@ const trips = [
     {
         id: 1,
         name: "Italy Trip",
-        destination: "Rome, Italy",
+        destinationCity: "Rome",
+        destinationCountry: "Italy",
+        bookingRef: null,
         startDate: "2026-07-12",
         endDate: "2026-07-19",
-        notes: "Summer holiday"
+        destinationPicture: null,
+        destinationFlag: null
     },
     {
         id: 2,
         name: "Paris Weekend",
-        destination: "Paris, France",
+        destinationCity: "Paris", 
+        destinationCountry: "France",
+        bookingRef: null,
         startDate: "2026-08-10",
         endDate: "2026-08-13",
-        notes: "Weekend trip"
+        destinationPicture: null,
+        destinationFlag: null
     }
 ];
 

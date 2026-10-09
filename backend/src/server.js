@@ -9,9 +9,11 @@ app.use(express.json());
 // Routes
 const tripRoutes = require("./routes/trips");
 const activityRoutes = require("./routes/activities");
+const expenseRoutes = require("./routes/expenses");
 
 app.use("/api/trips", tripRoutes);
 app.use("/api", activityRoutes);
+app.use("/api", expenseRoutes);
 
 // Api check
 app.get("/api/check", (req, res) => {
@@ -21,8 +23,9 @@ app.get("/api/check", (req, res) => {
     });
 });
 
-const PORT = 3000;
+
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
