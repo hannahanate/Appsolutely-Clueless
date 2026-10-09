@@ -9,9 +9,11 @@ app.use(express.json());
 // Routes
 const tripRoutes = require("./routes/trips");
 const activityRoutes = require("./routes/activities");
+const expenseRoutes = require("./routes/expenses");
 
 app.use("/api/trips", tripRoutes);
 app.use("/api", activityRoutes);
+app.use("/api", expenseRoutes);
 
 // Api check
 app.get("/api/check", (req, res) => {
