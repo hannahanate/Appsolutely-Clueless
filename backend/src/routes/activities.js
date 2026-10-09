@@ -32,10 +32,48 @@ router.post("/trips/:tripId/activities", (req,res) => {
         date,
         time: time || "",
         location: location || "",
-        notes: notes || ""
     };
 
     activities.push(newActivity);
     res.status(201).json(newActivity);
-})
+});
+
+//edit activity
+router.put("/activities/:id", (req,res) => {
+    const id = Number(req.params.id);
+
+    const activity= activities.find(activity => activity.id === id);
+
+    if(!activity){
+        return res.status(404).json({
+            message: "Activity was not found"
+        });
+    }
+
+    const fields = ["name", "date", "time", "location"];
+    for(const field of fields){
+        if (req.body[field] !== undefined){
+            activity[field] = req.body[field];
+        }
+    }
+    res.json(activity);
+});
+
+//delete activity
+router.delete("/activities/:id", (req,res) => {
+    const id = Number(req.params.id);
+
+    const index = activities.findIndex(activity => activity.id === id);
+
+    if (index === -1){
+        return res.status(404).json({
+            message: "activity not found"
+        });
+    }
+
+    activities.splice(index,1);
+    res.json({
+        message: "Activity was deleted suiccessfully"
+    });
+});
 module.exports = router;
