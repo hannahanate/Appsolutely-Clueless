@@ -1,10 +1,13 @@
 const express = require("express");
 const router = express.Router();
 
-const trips = require("../data/data");
+const db = require("../database/database");
+//const trips = require("../data/data");
+
 
 // get all trips
 router.get("/", (req, res) => {
+    const trips = db.prepare("SELECT * FROM Trip ORDER BY id").all();
     res.json(trips);
 });
 
@@ -12,7 +15,7 @@ router.get("/", (req, res) => {
 router.get("/:id", (req, res) => {
     const id = Number(req.params.id);
 
-    const trip = trips.find(trip => trip.id === id);
+    const trip = db.prepare("SELECT * FROM Trip WHERE id = ?").get(id);
 
     if (!trip) {
         return res.status(404).json({
@@ -35,19 +38,26 @@ router.post("/", (req,res) => {
         });
     }
 
-    const newTrip = {
-        id: trips.length + 1,
+    const result = db.prepare(`
+        INSERT INTO Trip (
+            name, destinationCity, destinationCountry, bookingRef,
+            startDate, endDate, destinationPicture, destinationFlag
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
         name,
         destinationCity,
         destinationCountry,
-        bookingRef: bookingRef || null,
+        bookingRef || null,
         startDate,
         endDate,
-        destinationPicture,
-        destinationFlag
-    };
+        destinationPicture || null,
+        destinationFlag || null
+    );
 
-    trips.push(newTrip);
+    const newTrip = db.prepare("SELECT * FROM Trip WHERE id = ?")
+        .get(result.lastInsertRowid);
+
     res.status(201).json(newTrip);
 });
 
@@ -55,7 +65,7 @@ router.post("/", (req,res) => {
 router.put("/:id", (req,res) => {
     const id = Number(req.params.id);
 
-    const trip = trips.find(trip => trip.id === id);
+    const trip = db.prepare("SELECT * FROM Trip WHERE id = ?").get(id);
 
     // does trip exist
     if (!trip) {
@@ -75,28 +85,39 @@ router.put("/:id", (req,res) => {
         "destinationFlag"
     ];
 
+    const updates = [];
+    const values = [];
+
     for (const field of fields) {
         if (req.body[field] !== undefined) {
-            trip[field] = req.body[field];
+            updates.push(`${field} = ?`);
+            values.push(req.body[field]);
         }
     }
 
-    res.json(trip);
+    if (updates.length > 0) {
+        db.prepare(`UPDATE Trip SET ${updates.join(", ")} WHERE id = ?`)
+            .run(...values, id);
+    }
+
+    const updatedTrip = db.prepare("SELECT * FROM Trip WHERE id = ?").get(id);
+
+    res.json(updatedTrip);
 });
 
 // delete trip
+
+ // delete trip
 router.delete("/:id", (req,res) => {
     const id = Number(req.params.id);
 
-    const tripsIndex = trips.findIndex(trip => trip.id === id);
+    const result = db.prepare("DELETE FROM Trip WHERE id = ?").run(id);
 
-    if (tripsIndex === -1) {
+    if (result.changes === 0) {
         return res.status(404).json({
             message: "Trip was not found"
         });
     }
-
-    trips.splice(tripsIndex, 1);
 
     res.json({
         message: "Trip was deleted successfully!"
