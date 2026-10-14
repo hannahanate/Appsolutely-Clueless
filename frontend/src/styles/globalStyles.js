@@ -1,4 +1,3 @@
-
 import { StyleSheet } from "react-native";
 import { colors } from "./theme";
 
@@ -7,6 +6,7 @@ const globalStyles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
         padding: 20,
+        paddingTop: 55,
     },
 
     title: {
