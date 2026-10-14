@@ -6,6 +6,7 @@ export default function DiaryScreen() {
     return (
         <View style={styles.container}>
         <Text style={styles.title}>Travel Diary</Text>
+        <Text> Travel Diary is coming soon!</Text>
         </View>
     );
 }
