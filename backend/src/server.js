@@ -12,11 +12,6 @@ const activityRoutes = require("./routes/activities");
 const expenseRoutes = require("./routes/expenses");
 const packingRoutes = require("./routes/packing");
 
-console.log("tripRoutes:", typeof tripRoutes);
-console.log("activityRoutes:", typeof activityRoutes);
-console.log("expenseRoutes:", typeof expenseRoutes);
-console.log("packingRoutes:", typeof packingRoutes);
-
 app.use("/api/trips", tripRoutes);
 app.use("/api", activityRoutes);
 app.use("/api", expenseRoutes);
