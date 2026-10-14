@@ -12,12 +12,14 @@ const activityRoutes = require("./routes/activities");
 const expenseRoutes = require("./routes/expenses");
 const packingRoutes = require("./routes/packing");
 const flightRoutes = require("./routes/flights");
+const accomodationRoutes = require("./routes/accomodation");
 
 app.use("/api/trips", tripRoutes);
 app.use("/api", activityRoutes);
 app.use("/api", expenseRoutes);
 app.use("/api", packingRoutes);
 app.use("/api", flightRoutes);
+app.use("/api", accomodationRoutes);
 
 // Api check
 app.get("/api/check", (req, res) => {

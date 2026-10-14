@@ -25,7 +25,7 @@ function validateFlight(body) {
             typeof body[field] !== "string" ||
             body[field].trim() === ""
         ) {
-            return `${field} is required and must be a non-empty string`;
+            return `${field} is required, please fill the info`;
         }
     }
 
@@ -42,7 +42,7 @@ function validateFlight(body) {
             body[field] !== null &&
             typeof body[field] !== "string"
         ) {
-            return `${field} must be a string or null`;
+            return `${field} must be in writing or left empty`;
         }
     }
 
