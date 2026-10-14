@@ -1,7 +1,7 @@
 const API_URL =
     "https://appsolutelyclueless-afhnauf5cqc4bvek.francecentral-01.azurewebsites.net/api/trips";
 
-    // Get all trips from backend
+    // Hae kaikki matkat backendistä - get all trips from backend
     export async function getTrips() {
     const response = await fetch(API_URL);
 
@@ -12,7 +12,7 @@ const API_URL =
     return response.json();
     }
 
-    // Create a new trip
+    // Luo uusi matka - create new trip
     export async function createTrip(tripData) {
     const response = await fetch(API_URL, {
         method: "POST",

@@ -19,7 +19,7 @@ import {
     const [error, setError] = useState(null);
     const [selectedTab, setSelectedTab] = useState("Upcoming");
 
-    // Hae matkat kun näkymä avataan
+    // Hae matkat kun näkymä avataan - fetch trips when view is opened
     useFocusEffect(
         useCallback(() => {
         let active = true;
@@ -53,7 +53,7 @@ import {
         }, [])
     );
 
-    // Erottele tulevat ja menneet matkat päättymispäivän perusteella
+    // Erottele tulevat ja menneet matkat päättymispäivän perusteella - separate upcoming and past trips based on date
     const today = new Date().toISOString().slice(0, 10);
 
     const filteredTrips = trips.filter((trip) => {
@@ -68,6 +68,7 @@ import {
         return false;
     });
 
+    // ============= NÄKYMÄ - VIEW =============
     return (
         <View style={styles.container}>
         <ScrollView
@@ -112,7 +113,7 @@ import {
             ))}
             </View>
 
-            {/* Matkojen kortit*/}
+            {/* Matkojen kortit - trip cards*/}
             {loading ? (
             <ActivityIndicator size="large" />
             ) : error ? (
