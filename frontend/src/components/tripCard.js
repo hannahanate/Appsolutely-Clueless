@@ -2,25 +2,32 @@
 import React from "react";
 import { Pressable, Text, StyleSheet } from "react-native";
 
+// Muuttaa päivämäärän muodosta YYYY-MM-DD muotoon DD.MM.YYYY
+function formatDate(dateString) {
+    const [year, month, day] = dateString.split("-");
+
+    return `${day}.${month}.${year}`;
+}
+
 export default function TripCard({ trip, onPress }) {
     return (
         <Pressable style={styles.card} onPress={onPress}>
-        <Text style={styles.title}>
-            {trip.name}
-        </Text>
+            <Text style={styles.title}>
+                {trip.name}
+            </Text>
 
-        <Text style={styles.destination}>
-            {trip.destinationCity}, {trip.destinationCountry}
-        </Text>
+            <Text style={styles.destination}>
+                {trip.destinationCity}, {trip.destinationCountry}
+            </Text>
 
-        <Text style={styles.dates}>
-            {trip.startDate} – {trip.endDate}
-        </Text>
+            <Text style={styles.dates}>
+                {formatDate(trip.startDate)} – {formatDate(trip.endDate)}
+            </Text>
         </Pressable>
     );
-    }
+}
 
-    const styles = StyleSheet.create({
+const styles = StyleSheet.create({
     card: {
         backgroundColor: "#FFFFFF",
         padding: 20,
