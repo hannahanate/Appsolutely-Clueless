@@ -1,17 +1,19 @@
 const express = require("express");
 const router = express.Router();
 
-const expenses = require("../data/expenses");
+const db = require("../database");
 
 
 //get all expenses per trip
 router.get("/trips/:tripId/budget", (req,res) => {
     const tripId = Number(req.params.tripId);
 
-    const tripExpenses = expenses.filter(
-        expense => expense.tripId === tripId
-    );
-    res.json(tripExpenses);
+    //read info from db
+    const expenses = db.prepare(
+        "SELECT * FROM Budget WHERE tripId = ?"
+    ).all(tripId);
+
+    res.json(expenses);
 });
 
 //add expense
@@ -32,24 +34,49 @@ router.post("/trips/:tripId/budget", (req,res) => {
         });
     }
 
-    const newExpense = {
-        id: expenses.length + 1,
-        tripId,
-        description,
-        amount: Number(amount),
-        currency,
-        category,
-        date
-    };
-    expenses.push(newExpense);
-    res.status(201).json(newExpense);
+    //saving values to db
+    try {
+        const result = db.prepare(`
+            INSERT INTO Budget
+            (tripId, description, amount, currency, category, date)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `).run(
+            tripId,
+            description,
+            Number(amount),
+            currency,
+            category,
+            date
+        );
+
+        //adding new expense
+        const newExpense = db.prepare(
+            "SELECT * FROM Budget WHERE id = ?"
+        ).get(result.lastInsertRowid);
+
+        res.status(201).json(newExpense);
+    } catch (error) {
+        if (error.code === "ERR_SQLITE_CONSTRAINT_FOREIGNKEY") {
+            return res.status(400).json({
+                message: "Trip does not exist"
+            });
+        }
+
+        console.error(error);
+        res.status(500).json({
+            message: "Error adding expense"
+        });
+    }
 });
 
 //edit expense
 router.put("/budget/:id", (req,res) => {
     const id = Number(req.params.id);
 
-    const expense= expenses.find(expense => expense.id === id);
+    //read info from db
+    const expense = db.prepare(
+        "SELECT * FROM Budget WHERE id = ?"
+    ).get(id);
 
     if(!expense){
         return res.status(404).json({
@@ -65,40 +92,65 @@ router.put("/budget/:id", (req,res) => {
         "date"
     ];
 
-    for (const field of fields){
-        if (req.body[field] !== undefined){
-            expense[field] = req.body[field ];
+    const updates = fields.filter(
+        field => req.body[field] !== undefined
+    );
+
+    if (updates.includes("amount")) {
+        const amount = req.body.amount;
+
+        if (
+            amount === "" ||
+            !Number.isFinite(Number(amount)) ||
+            Number(amount) <= 0
+        ) {
+            return res.status(400).json({
+                message: "Amount must be higher than 0"
+            });
         }
     }
 
-    if (!Number.isFinite(Number(expense.amount))||
-        Number()
-    ){
-        return res.status(400).json({
-            message: "Amount must be a number greater than zero"
-        });
+    if (updates.length === 0) {
+        return res.json(expense);
     }
 
-    expense.amount = Number(expense.amount);
+    const setClause = updates
+        .map(field => `"${field}" = ?`)
+        .join(", ");
 
-    res.json(expense);
+    const values = updates.map(field =>
+        field === "amount"
+            ? Number(req.body[field])
+            : req.body[field]
+    );
+
+    //edit info to db
+    db.prepare(
+        `UPDATE Budget SET ${setClause} WHERE id = ?`
+    ).run(...values, id);
+
+    //save info to db
+    const updatedExpense = db.prepare(
+        "SELECT * FROM Budget WHERE id = ?"
+    ).get(id);
+
+    res.json(updatedExpense);
 });
 
 //delete expense
 router.delete("/budget/:id", (req,res) => {
     const id = Number(req.params.id);
 
-    const index = expenses.findIndex(
-        expense => expense.id === id
-    );
+    //delete from db
+    const result = db.prepare(
+        "DELETE FROM Budget WHERE id = ?"
+    ).run(id);
 
-    if (index === -1) {
+    if (result.changes === 0) {
         return res.status(404).json({
-            message: "Expense does not exist"
+            message: "Expense was not found"
         });
     }
-
-    expenses.splice(index, 1);
 
     res.json({
         message: "Expense deleted"
