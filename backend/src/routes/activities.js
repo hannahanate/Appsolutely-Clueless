@@ -1,17 +1,17 @@
 const express = require("express");
 const router = express.Router();
-
-const activities = require("../data/activities");
+const db = require("../database");
 
 // get activity for one trip
 router.get("/trips/:tripId/activities", (req, res) => {
     const tripId = Number(req.params.tripId);
 
-    const tripActivities = activities.filter(
-        activity => activity.tripId === tripId
-    );
+    //read info from db
+    const activities = db.prepare(
+        "SELECT * FROM Activity WHERE tripId = ?"
+    ).all(tripId);
 
-    res.json(tripActivities);
+    res.json(activities);
 });
 
 // create activity
@@ -25,24 +25,50 @@ router.post("/trips/:tripId/activities", (req,res) => {
             message: "Date and name for activity is required"
         });
     }
-    const newActivity = {
-        id: activities.length + 1,
-        tripId,
-        name,
-        date,
-        time: time || "",
-        location: location || "",
-    };
 
-    activities.push(newActivity);
-    res.status(201).json(newActivity);
+    //save info to db
+    try {
+        const result = db.prepare(`
+            INSERT INTO Activity
+            (tripId, name, date, time, location, notes)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `).run(
+            tripId,
+            name,
+            date,
+            time || null,
+            location || null,
+            notes || null
+        );
+
+        //read new activity from db
+        const newActivity = db.prepare(
+            "SELECT * FROM Activity WHERE id = ?"
+        ).get(result.lastInsertRowid);
+
+        res.status(201).json(newActivity);
+    } catch (error) {
+        if (error.code === "ERR_SQLITE_CONSTRAINT_FOREIGNKEY") {
+            return res.status(400).json({
+                message: "Error finding the trip"
+            });
+        }
+
+        console.error(error);
+        res.status(500).json({
+            message: "Problem adding activity"
+        });
+    }
 });
 
 //edit activity
 router.put("/activities/:id", (req,res) => {
     const id = Number(req.params.id);
 
-    const activity= activities.find(activity => activity.id === id);
+    //read info from db before editing
+    const activity = db.prepare(
+        "SELECT * FROM Activity WHERE id = ?"
+    ).get(id);
 
     if(!activity){
         return res.status(404).json({
@@ -51,29 +77,61 @@ router.put("/activities/:id", (req,res) => {
     }
 
     const fields = ["name", "date", "time", "location"];
-    for(const field of fields){
-        if (req.body[field] !== undefined){
-            activity[field] = req.body[field];
-        }
+    
+    const updates = fields.filter(
+        field => req.body[field] !== undefined
+    );
+
+    //checking name and date
+    if (
+        updates.includes("name") && !req.body.name ||
+        updates.includes("date") && !req.body.date
+    ) {
+        return res.status(400).json({
+            message: "Please fill in name and date"
+        });
     }
-    res.json(activity);
+
+    if (updates.length === 0) {
+        return res.json(activity);
+    }
+
+    const setClause = updates
+        .map(field => `"${field}" = ?`)
+        .join(", ");
+
+    const values = updates.map(field => req.body[field]);
+
+    //edit info to db
+    db.prepare(
+        `UPDATE Activity SET ${setClause} WHERE id = ?`
+    ).run(...values, id);
+
+    //read new info from db
+    const updatedActivity = db.prepare(
+        "SELECT * FROM Activity WHERE id = ?"
+    ).get(id);
+
+    res.json(updatedActivity);
 });
 
 //delete activity
 router.delete("/activities/:id", (req,res) => {
     const id = Number(req.params.id);
 
-    const index = activities.findIndex(activity => activity.id === id);
+    //delete from db
+    const result = db.prepare(
+        "DELETE FROM Activity WHERE id = ?"
+    ).run(id);
 
-    if (index === -1){
+    if (result.changes === 0) {
         return res.status(404).json({
-            message: "activity not found"
+            message: "Activity was not found"
         });
     }
 
-    activities.splice(index,1);
     res.json({
-        message: "Activity was deleted suiccessfully"
+        message: "Activity was deleted"
     });
 });
 module.exports = router;
