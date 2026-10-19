@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Text,
     TextInput,
@@ -11,7 +11,11 @@ import {
     } from "react-native";
 
     import DateTimePicker from "@react-native-community/datetimepicker";
-    import { createTrip } from "../services/tripservice";
+    import {
+        createTrip,
+        getTrip,
+        updateTrip
+    } from "../services/tripservice";
 
     // Näyttää päivämäärän muodossa DD.MM.YYYY
     function formatDisplayDate(date) {
@@ -31,7 +35,16 @@ import {
     return `${year}-${month}-${day}`;
     }
 
-    export default function CreateTripScreen({ navigation }) {
+    // Muuttaa backendin päivämäärän JavaScriptin Date-muotoon
+    function parseApiDate(dateString) {
+        const [year, month, day] = dateString.split("-").map(Number);
+        return new Date(year, month - 1, day);
+    }
+
+    export default function CreateTripScreen({ navigation, route }) {
+    const tripId = route.params?.tripId;
+    const isEditing = tripId !== undefined && tripId !== null;
+
     // Lomakkeen tiedot
     const [name, setName] = useState("");
     const [destinationCity, setDestinationCity] = useState("");
@@ -44,10 +57,46 @@ import {
     // Kalenterin ja tallennuksen tila
     const [activePicker, setActivePicker] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(isEditing);
+
+    // Haetaan olemassa olevan matkan tiedot muokkausta varten
+    useEffect(() => {
+        if (!isEditing) return;
+
+        let active = true;
+
+        async function loadTrip() {
+            try {
+                const trip = await getTrip(tripId);
+
+                if (!active) return;
+
+                setName(trip.name || "");
+                setDestinationCity(trip.destinationCity || "");
+                setDestinationCountry(trip.destinationCountry || "");
+                setStartDate(parseApiDate(trip.startDate));
+                setEndDate(parseApiDate(trip.endDate));
+            } catch (error) {
+                Alert.alert("Error", error.message);
+                navigation.goBack();
+            } finally {
+                if (active) setLoading(false);
+            }
+        }
+
+        loadTrip();
+
+        return () => {
+            active = false;
+        };
+    }, [tripId, isEditing, navigation]);
 
     // Tallentaa kalenterista valitun päivämäärän
     function handleDateChange(event, selectedDate) {
-        if (!selectedDate) return;
+        if (event?.type === "dismissed" || !selectedDate) {
+            setActivePicker(null);
+            return;
+        }
 
         if (activePicker === "start") {
         setStartDate(selectedDate);
@@ -66,7 +115,7 @@ import {
         setActivePicker(null);
     }
 
-    // Tarkistaa tiedot ja tallentaa uuden matkan
+    // Tarkistaa tiedot ja tallentaa uuden matkan tai päivittää olemassa olevan matkan
     async function handleCreateTrip() {
         // Tarkistetaan, että kaikki kentät on täytetty
         if (
@@ -96,13 +145,20 @@ import {
 
         try {
         // Lähetetään matkan tiedot backendille
-        await createTrip({
+        const tripData = {
             name: name.trim(),
             destinationCity: destinationCity.trim(),
             destinationCountry: destinationCountry.trim(),
             startDate: formatApiDate(startDate),
             endDate: formatApiDate(endDate),
-        });
+        };
+
+        if (isEditing) {
+            await updateTrip(tripId, tripData);
+            Alert.alert("Success", "Trip updated successfully.");
+        } else {
+            await createTrip(tripData);
+        }
 
         // Palataan edelliselle sivulle tallennuksen jälkeen
         navigation.goBack();
@@ -113,13 +169,23 @@ import {
         }
     }
 
+    if (loading) {
+        return (
+            <ScrollView contentContainerStyle={styles.loadingContainer}>
+                <ActivityIndicator size="large" />
+            </ScrollView>
+        );
+    }
+
     return (
         <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         >
-        <Text style={styles.title}>Create Trip</Text>
+        <Text style={styles.title}>
+            {isEditing ? "Edit Trip" : "Create Trip"}
+        </Text>
 
         {/* Matkan nimi */}
         <Text style={styles.label}>Trip name</Text>
@@ -212,7 +278,9 @@ import {
             {saving ? (
             <ActivityIndicator color="#FFFFFF" />
             ) : (
-            <Text style={styles.buttonText}>Create Trip</Text>
+            <Text style={styles.buttonText}>
+                {isEditing ? "Save Changes" : "Create Trip"}
+            </Text>
             )}
         </Pressable>
         </ScrollView>
@@ -229,6 +297,12 @@ import {
     content: {
         padding: 24,
         paddingBottom: 40,
+    },
+
+    loadingContainer: {
+        flexGrow: 1,
+        alignItems: "center",
+        justifyContent: "center",
     },
 
     title: {
