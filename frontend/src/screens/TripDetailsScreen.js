@@ -112,6 +112,17 @@ export default function TripDetailsScreen({ route, navigation }) {
       >
         <Text style={styles.buttonText}>Edit trip</Text>
       </Pressable>
+         <Pressable
+        style={styles.packingButton}
+        onPress={() =>
+          navigation.navigate("PackingList", {
+            tripId: trip.id,
+            tripName: trip.name,
+          })
+        }
+      >
+        <Text style={styles.buttonText}>Packing List</Text>
+      </Pressable>
 
       <Pressable style={styles.deleteButton} onPress={handleDelete}>
         <Text style={styles.buttonText}>Delete trip</Text>
@@ -169,5 +180,12 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
+  },
+    packingButton: {
+    backgroundColor: "#059669",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 12,
   },
 });
