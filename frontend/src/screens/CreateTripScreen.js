@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
     Text,
@@ -17,7 +16,7 @@ import {
         updateTrip
     } from "../services/tripservice";
 
-    // Näyttää päivämäärän muodossa DD.MM.YYYY
+    // Näyttää päivämäärän muodossa DD.MM.YYYY - display date as DD.MM.YYYY
     function formatDisplayDate(date) {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -26,7 +25,7 @@ import {
     return `${day}.${month}.${year}`;
     }
 
-    // Muuttaa päivämäärän backendille muotoon YYYY-MM-DD
+    // Muuttaa päivämäärän backendille muotoon YYYY-MM-DD - change date to YYYY-MMM-DD for backend
     function formatApiDate(date) {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -50,11 +49,11 @@ import {
     const [destinationCity, setDestinationCity] = useState("");
     const [destinationCountry, setDestinationCountry] = useState("");
 
-    // Matkan päivämäärät
+    // Matkan päivämäärät - trip dates 
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
 
-    // Kalenterin ja tallennuksen tila
+    // Kalenterin ja tallennuksen tila - calendar and save status
     const [activePicker, setActivePicker] = useState(null);
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(isEditing);
@@ -91,7 +90,7 @@ import {
         };
     }, [tripId, isEditing, navigation]);
 
-    // Tallentaa kalenterista valitun päivämäärän
+    // Tallentaa kalenterista valitun päivämäärän - saved date picked from calendar
     function handleDateChange(event, selectedDate) {
         if (event?.type === "dismissed" || !selectedDate) {
             setActivePicker(null);
@@ -101,7 +100,7 @@ import {
         if (activePicker === "start") {
         setStartDate(selectedDate);
 
-        // Tyhjennetään paluupäivä, jos se on ennen lähtöpäivää
+        // Tyhjennetään paluupäivä, jos se on ennen lähtöpäivää - clear end date if its before start date
         if (
             endDate &&
             formatApiDate(selectedDate) > formatApiDate(endDate)
@@ -117,7 +116,7 @@ import {
 
     // Tarkistaa tiedot ja tallentaa uuden matkan tai päivittää olemassa olevan matkan
     async function handleCreateTrip() {
-        // Tarkistetaan, että kaikki kentät on täytetty
+        // Tarkistetaan, että kaikki kentät on täytetty - check all fields are filled
         if (
         !name.trim() ||
         !destinationCity.trim() ||
@@ -132,7 +131,7 @@ import {
         return;
         }
 
-        // Paluupäivä ei saa olla ennen lähtöpäivää
+        // Paluupäivä ei saa olla ennen lähtöpäivää - end date cant be before start date
         if (formatApiDate(endDate) < formatApiDate(startDate)) {
         Alert.alert(
             "Invalid dates",
@@ -160,7 +159,7 @@ import {
             await createTrip(tripData);
         }
 
-        // Palataan edelliselle sivulle tallennuksen jälkeen
+        // Palataan edelliselle sivulle tallennuksen jälkeen - return to previous page when saved 
         navigation.goBack();
         } catch (error) {
         Alert.alert("Error", error.message);
@@ -169,6 +168,7 @@ import {
         }
     }
 
+    // ============= NÄKYMÄ - VIEW =============
     if (loading) {
         return (
             <ScrollView contentContainerStyle={styles.loadingContainer}>
@@ -187,7 +187,7 @@ import {
             {isEditing ? "Edit Trip" : "Create Trip"}
         </Text>
 
-        {/* Matkan nimi */}
+        {/* Matkan nimi  - trip name */}
         <Text style={styles.label}>Trip name</Text>
         <TextInput
             style={styles.input}
@@ -196,7 +196,7 @@ import {
             onChangeText={setName}
         />
 
-        {/* Kohdekaupunki */}
+        {/* Kohdekaupunki - destination city*/}
         <Text style={styles.label}>Destination city</Text>
         <TextInput
             style={styles.input}
@@ -205,7 +205,7 @@ import {
             onChangeText={setDestinationCity}
         />
 
-        {/* Kohdemaa */}
+        {/* Kohdemaa - destination country */}
         <Text style={styles.label}>Destination country</Text>
         <TextInput
             style={styles.input}
@@ -214,7 +214,7 @@ import {
             onChangeText={setDestinationCountry}
         />
 
-        {/* Lähtöpäivän valinta */}
+        {/* Lähtöpäivän valinta - pick start date */}
         <Text style={styles.label}>Start date</Text>
         <Pressable
             style={styles.dateInput}
@@ -232,7 +232,7 @@ import {
             <Text style={styles.calendarIcon}>📅</Text>
         </Pressable>
 
-        {/* Paluupäivän valinta */}
+        {/* Paluupäivän valinta - end date */}
         <Text style={styles.label}>End date</Text>
         <Pressable
             style={styles.dateInput}
@@ -250,7 +250,7 @@ import {
             <Text style={styles.calendarIcon}>📅</Text>
         </Pressable>
 
-        {/* Avataan kalenteri, kun päivämääräkenttää painetaan */}
+        {/* Avataan kalenteri, kun päivämääräkenttää painetaan - open clander when date is pressed*/}
         {activePicker !== null && (
             <DateTimePicker
             value={
@@ -269,7 +269,7 @@ import {
             />
         )}
 
-        {/* Matkan tallennuspainike */}
+        {/* Matkan tallennuspainike - trip saving button */}
         <Pressable
             style={[styles.button, saving && styles.disabledButton]}
             onPress={handleCreateTrip}
@@ -287,7 +287,7 @@ import {
     );
     }
 
-    // Lomakkeen tyylit
+    // Lomakkeen tyylit - styles
     const styles = StyleSheet.create({
     container: {
         flex: 1,

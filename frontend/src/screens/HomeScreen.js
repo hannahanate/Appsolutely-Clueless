@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from "react";
 import {
     View,
@@ -52,7 +51,7 @@ export default function HomeScreen({ navigation }) {
         }, [])
     );
 
-    // Näytetään vain matkat, joiden päättymispäivä ei ole mennyt
+    // Näytetään vain matkat, joiden päättymispäivä ei ole mennyt - show only trips that end date is not passed
     const today = new Date();
     const todayString =
         `${today.getFullYear()}-` +
@@ -63,6 +62,7 @@ export default function HomeScreen({ navigation }) {
         (trip) => trip.endDate >= todayString
     );
 
+    // ============= NÄKYMÄ - VIEW =============
     return (
         <View style={styles.container}>
             <ScrollView

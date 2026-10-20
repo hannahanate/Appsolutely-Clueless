@@ -19,7 +19,7 @@ import {
     const [error, setError] = useState(null);
     const [selectedTab, setSelectedTab] = useState("Upcoming");
 
-    // Fetch trips whenever this screen becomes active
+    // Hae matkat kun näkymä avataan - fetch trips when view is opened
     useFocusEffect(
         useCallback(() => {
         let active = true;
@@ -53,7 +53,7 @@ import {
         }, [])
     );
 
-    // Separate upcoming and past trips based on end date
+    // Erottele tulevat ja menneet matkat päättymispäivän perusteella - separate upcoming and past trips based on date
     const today = new Date().toISOString().slice(0, 10);
 
     const filteredTrips = trips.filter((trip) => {
@@ -65,17 +65,17 @@ import {
         return trip.endDate < today;
         }
 
-        // Bucket List needs its own backend field later
         return false;
     });
 
+    // ============= NÄKYMÄ - VIEW =============
     return (
         <View style={styles.container}>
         <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
         >
-            {/* Header */}
+            {/* Otsikko */}
             <View style={localStyles.header}>
             <Text style={styles.title}>My Trips</Text>
 
@@ -91,7 +91,6 @@ import {
             </Pressable>
             </View>
 
-            {/* Trip filters */}
             <View style={localStyles.filterRow}>
             {["Upcoming", "Past", "Bucket List"].map((tab) => (
                 <Pressable
@@ -114,7 +113,7 @@ import {
             ))}
             </View>
 
-            {/* Trip cards */}
+            {/* Matkojen kortit - trip cards*/}
             {loading ? (
             <ActivityIndicator size="large" />
             ) : error ? (

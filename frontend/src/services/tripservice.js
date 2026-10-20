@@ -25,8 +25,7 @@ export async function getTrips() {
     }
 
 
-//En uskaltanu poistaa tätä kun tätä ei ollu viimeks kun tein niin en tiiä vaikuttaako miten tohon mun
-    // Create a new trip
+    // Luo uusi matka - create new trip
     export async function createTrip(tripData) {
     const response = await fetch(TRIPS_URL, {
         method: "POST",
