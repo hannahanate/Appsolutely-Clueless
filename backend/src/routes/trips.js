@@ -14,6 +14,16 @@ const fields = [
     "destinationFlag"
 ];
 
+// Valitse kohteen kuva automaattisesti - Select destination picture automatically
+function getDestinationPicture(city) {
+    return `/images/destinationPictures/${city.trim().toLowerCase()}.png`;
+}
+
+// Valitse maan lippu automaattisesti - Select country flag automatically
+function getDestinationFlag(country) {
+    return `/images/destinationFlags/${country.trim().toLowerCase()}.png`;
+}
+
 // get all trips from db
 router.get("/", (req, res) => {
     try {
@@ -81,8 +91,8 @@ router.post("/", (req,res) => {
             bookingRef ?? null,
             startDate,
             endDate,
-            destinationPicture ?? null,
-            destinationFlag ?? null
+            getDestinationPicture(destinationCity),
+            getDestinationFlag(destinationCountry)
         );
 
         //getting the newly created trip
@@ -112,6 +122,15 @@ router.put("/:id", (req,res) => {
 
         if (!trip) {
             return res.status(404).json({ message: "Trip was not found" });
+        }
+
+        // Päivitä kuvat automaattisesti - Update images automatically
+        if (req.body.destinationCity !== undefined) {
+            req.body.destinationPicture = getDestinationPicture(req.body.destinationCity);
+        }
+
+        if (req.body.destinationCountry !== undefined) {
+            req.body.destinationFlag = getDestinationFlag(req.body.destinationCountry);
         }
 
         const updates = fields.filter(field => req.body[field] !== undefined);
