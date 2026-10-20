@@ -100,7 +100,15 @@ export default function HomeScreen({ navigation }) {
                     <Text>No upcoming trips.</Text>
                 ) : (
                     upcomingTrips.map((trip) => (
-                        <TripCard key={trip.id} trip={trip} />
+                        <TripCard
+                            key={trip.id}
+                            trip={trip}
+                            onPress={() =>
+                                navigation.getParent()?.navigate("TripDetails", {
+                                    tripId: trip.id
+                                })
+                            }
+                        />
                     ))
                 )}
             </ScrollView>

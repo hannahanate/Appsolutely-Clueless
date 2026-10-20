@@ -1,13 +1,17 @@
 const express = require("express");
 const cors = require("cors");
-const db= require("./database");
+const path = require("path");
+const db = require("./database");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// Kuvien näyttäminen - Serve images
+app.use("/images", express.static(path.join(__dirname, "../public/images")));
+
+// Reitit - Routes
 const tripRoutes = require("./routes/trips");
 const activityRoutes = require("./routes/activities");
 const expenseRoutes = require("./routes/expenses");
@@ -22,14 +26,13 @@ app.use("/api", packingRoutes);
 app.use("/api", flightRoutes);
 app.use("/api", accomodationRoutes);
 
-// Api check
+// API:n tarkistus - API check
 app.get("/api/check", (req, res) => {
     res.json({
         status: "OK",
         message: "Travel app backend is working"
     });
 });
-
 
 const PORT = process.env.PORT || 3000;
 

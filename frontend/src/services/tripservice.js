@@ -6,7 +6,7 @@
 //Azure tehdään erikseen jotenkin, aivot jumissa taas ei jaksa :D
 const AZURE_API_URL =
   "https://appsolutelyclueless-afhnauf5cqc4bvek.francecentral-01.azurewebsites.net/api";
-const LOCAL_API_URL = "http://192.168.0.202:3000/api";
+const LOCAL_API_URL = "http://192.168.50.25:3000/api";
 
 // Change this to LOCAL_API_URL when you want to use the local backend.
 export const API_URL = LOCAL_API_URL;
