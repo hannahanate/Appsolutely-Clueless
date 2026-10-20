@@ -9,7 +9,7 @@ import DiaryScreen from "../screens/DiaryScreen";
 import CreateTripScreen from "../screens/CreateTripScreen";
 import TripDetailsScreen from "../screens/TripDetailsScreen";
 import PackingListScreen from "../screens/PackingListScreen";
-
+import ActivitiesScreen from "../screens/ActivitiesScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -55,6 +55,11 @@ function MainTabs() {
             name="PackingList"
             component={PackingListScreen}
             options={{ title: "Packing List" }}
+            />
+            <Stack.Screen
+            name="Activities"
+            component={ActivitiesScreen}
+            options={{ title: "Activities" }}
             />
         </Stack.Navigator>
         </NavigationContainer>

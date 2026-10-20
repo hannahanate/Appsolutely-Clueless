@@ -11,7 +11,17 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { getTrip, deleteTrip } from "../services/tripservice";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
+// Näyttää päivämäärän muodossa DD.MM.YYYY
+    function formatDisplayDate(date) {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}.${month}.${year}`;
+    }
+    
 export default function TripDetailsScreen({ route, navigation }) {
   const { tripId } = route.params;
 
@@ -127,6 +137,16 @@ export default function TripDetailsScreen({ route, navigation }) {
       <Pressable style={styles.deleteButton} onPress={handleDelete}>
         <Text style={styles.buttonText}>Delete trip</Text>
       </Pressable>
+      <Pressable
+        style={styles.activitiesButton} onPress={() =>
+          navigation.navigate("Activities", {
+            tripId: trip.id, tripName: trip.name,
+          })
+        }
+      >
+        <Text style={styles.buttonText}>Activities</Text>
+      </Pressable>
+
     </ScrollView>
   );
 }
@@ -181,11 +201,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-    packingButton: {
+  packingButton: {
     backgroundColor: "#059669",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
     marginTop: 12,
   },
+  activitiesButton: {
+    backgroundColor: "#7C3AED",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 12,
+  },
+
 });
