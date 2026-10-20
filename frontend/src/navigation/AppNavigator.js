@@ -7,6 +7,9 @@ import HomeScreen from "../screens/HomeScreen";
 import TripsScreen from "../screens/TripsScreen";
 import DiaryScreen from "../screens/DiaryScreen";
 import CreateTripScreen from "../screens/CreateTripScreen";
+import TripDetailsScreen from "../screens/TripDetailsScreen";
+import PackingListScreen from "../screens/PackingListScreen";
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -39,7 +42,19 @@ function MainTabs() {
             <Stack.Screen
             name="CreateTrip"
             component={CreateTripScreen}
-            options={{ title: "New Trip" }}
+            options={({ route }) => ({
+            title: route.params?.tripId ? "Edit Trip" : "New Trip",
+            })} 
+            />
+            <Stack.Screen
+            name="TripDetails"
+            component={TripDetailsScreen}
+            options={{ title: "Trip Details" }}
+            />
+            <Stack.Screen
+            name="PackingList"
+            component={PackingListScreen}
+            options={{ title: "Packing List" }}
             />
         </Stack.Navigator>
         </NavigationContainer>
