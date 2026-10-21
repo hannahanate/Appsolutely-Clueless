@@ -41,3 +41,12 @@ const API_URL = "http://192....3000/api/trips";
 Replace the example IP with your own computer's IP address.
 
 Each developer has their own local SQLite database, so data created on one computer will not automatically appear on another.
+
+
+# Additional frontend packages used # 
+
+npx expo install @react-native-picker/picker
+
+npm install country-state-city
+
+npm install react-native-dropdown-picker
