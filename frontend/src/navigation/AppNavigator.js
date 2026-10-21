@@ -10,6 +10,8 @@ import CreateTripScreen from "../screens/CreateTripScreen";
 import TripDetailsScreen from "../screens/TripDetailsScreen";
 import PackingListScreen from "../screens/PackingListScreen";
 import ActivitiesScreen from "../screens/ActivitiesScreen";
+import FlightsScreen from "../screens/FlightsScreen";
+import BudgetScreen from "../screens/BudgetScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -52,6 +54,11 @@ function MainTabs() {
             options={{ title: "Trip Details" }}
             />
             <Stack.Screen
+            name="Flights"
+            component={FlightsScreen}
+            options={{ title: "Flights" }}
+            />
+            <Stack.Screen
             name="PackingList"
             component={PackingListScreen}
             options={{ title: "Packing List" }}
@@ -60,6 +67,11 @@ function MainTabs() {
             name="Activities"
             component={ActivitiesScreen}
             options={{ title: "Activities" }}
+            />
+            <Stack.Screen
+            name="Budget"
+            component={BudgetScreen}
+            options={{ title: "Budget" }}
             />
         </Stack.Navigator>
         </NavigationContainer>

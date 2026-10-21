@@ -1,10 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-const flights = require("../data/flights");
-const trips = require("../data/data");
+const db = require("../database");
 
-// Flight parameters
+// Required flight fields
 const requiredFields = [
     "airline",
     "flightNumber",
@@ -18,7 +17,7 @@ const requiredFields = [
     "arrivalTime"
 ];
 
-// Checking that all important fields are filled
+// Validate flight information
 function validateFlight(body) {
     for (const field of requiredFields) {
         if (
@@ -29,7 +28,6 @@ function validateFlight(body) {
         }
     }
 
-    //optional flight info
     const optionalFields = [
         "layoverCity",
         "layoverAirport",
@@ -42,49 +40,61 @@ function validateFlight(body) {
             body[field] !== null &&
             typeof body[field] !== "string"
         ) {
-            return `${field} must be in writing or left empty`;
+            return `${field} must be text or left empty`;
         }
     }
 
     return null;
 }
 
-// getting flight info
+// Get all flights belonging to a trip
 router.get("/trips/:tripId/flights", (req, res) => {
     const tripId = Number(req.params.tripId);
 
-    const tripExists = trips.some(
-        trip => trip.id === tripId
-    );
-
-    if (!Number.isInteger(tripId) || !tripExists) {
-        return res.status(404).json({
-            message: "Trip was not found"
+    if (!Number.isInteger(tripId)) {
+        return res.status(400).json({
+            message: "Invalid trip ID"
         });
     }
 
-    const tripFlights = flights.filter(
-        flight => flight.tripId === tripId
-    );
+    try {
+        const tripExists = db.prepare(
+            "SELECT id FROM Trip WHERE id = ?"
+        ).get(tripId);
 
-    return res.json(tripFlights);
+        if (!tripExists) {
+            return res.status(404).json({
+                message: "Trip was not found"
+            });
+        }
+
+        const tripFlights = db.prepare(`
+            SELECT *
+            FROM Flight
+            WHERE tripId = ?
+            ORDER BY id ASC
+        `).all(tripId);
+
+        return res.json(tripFlights);
+    } catch (error) {
+        console.error("Error getting flights:", error);
+
+        return res.status(500).json({
+            message: "Could not get flights"
+        });
+    }
 });
 
-// Adding flight info to the trip
+// Add a flight to a trip
 router.post("/trips/:tripId/flights", (req, res) => {
     const tripId = Number(req.params.tripId);
 
-    const tripExists = trips.some(
-        trip => trip.id === tripId
-    );
-
-    if (!Number.isInteger(tripId) || !tripExists) {
-        return res.status(404).json({
-            message: "Trip was not found"
+    if (!Number.isInteger(tripId)) {
+        return res.status(400).json({
+            message: "Invalid trip ID"
         });
     }
 
-    // if validation fails
     const validationError = validateFlight(req.body);
 
     if (validationError) {
@@ -93,42 +103,75 @@ router.post("/trips/:tripId/flights", (req, res) => {
         });
     }
 
-    const newFlight = {
-        id: flights.length + 1,
+    try {
+        const tripExists = db.prepare(
+            "SELECT id FROM Trip WHERE id = ?"
+        ).get(tripId);
 
-        tripId,
-        airline: req.body.airline.trim(),
-        flightNumber: req.body.flightNumber.trim(),
-        departureCity: req.body.departureCity.trim(),
-        departureAirport: req.body.departureAirport.trim(),
-        departureDate: req.body.departureDate.trim(),
-        departureTime: req.body.departureTime.trim(),
-        arrivalCity: req.body.arrivalCity.trim(),
-        arrivalAirport: req.body.arrivalAirport.trim(),
-        arrivalDate: req.body.arrivalDate.trim(),
-        arrivalTime: req.body.arrivalTime.trim(),
+        if (!tripExists) {
+            return res.status(404).json({
+                message: "Trip was not found"
+            });
+        }
 
-        layoverCity: req.body.layoverCity?.trim() || null,
-        layoverAirport: req.body.layoverAirport?.trim() || null,
-        layoverDuration: req.body.layoverDuration?.trim() || null
-    };
+        const insertFlight = db.prepare(`
+            INSERT INTO Flight (
+                tripId,
+                airline,
+                flightNumber,
+                departureCity,
+                departureAirport,
+                departureDate,
+                departureTime,
+                arrivalCity,
+                arrivalAirport,
+                arrivalDate,
+                arrivalTime,
+                layoverCity,
+                layoverAirport,
+                layoverDuration
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
 
-    flights.push(newFlight);
+        const result = insertFlight.run(
+            tripId,
+            req.body.airline.trim(),
+            req.body.flightNumber.trim(),
+            req.body.departureCity.trim(),
+            req.body.departureAirport.trim(),
+            req.body.departureDate.trim(),
+            req.body.departureTime.trim(),
+            req.body.arrivalCity.trim(),
+            req.body.arrivalAirport.trim(),
+            req.body.arrivalDate.trim(),
+            req.body.arrivalTime.trim(),
+            req.body.layoverCity?.trim() || null,
+            req.body.layoverAirport?.trim() || null,
+            req.body.layoverDuration?.trim() || null
+        );
 
-    return res.status(201).json(newFlight);
+        const newFlight = db.prepare(
+            "SELECT * FROM Flight WHERE id = ?"
+        ).get(Number(result.lastInsertRowid));
+
+        return res.status(201).json(newFlight);
+    } catch (error) {
+        console.error("Error adding flight:", error);
+
+        return res.status(500).json({
+            message: "Could not save flight"
+        });
+    }
 });
 
-// edit flight info
+// Edit a flight
 router.put("/flights/:id", (req, res) => {
     const id = Number(req.params.id);
 
-    const flight = flights.find(
-        flight => flight.id === id
-    );
-
-    if (!Number.isInteger(id) || !flight) {
-        return res.status(404).json({
-            message: "Flight was not found"
+    if (!Number.isInteger(id)) {
+        return res.status(400).json({
+            message: "Invalid flight ID"
         });
     }
 
@@ -140,44 +183,101 @@ router.put("/flights/:id", (req, res) => {
         });
     }
 
-    flight.airline = req.body.airline.trim();
-    flight.flightNumber = req.body.flightNumber.trim();
-    flight.departureCity = req.body.departureCity.trim();
-    flight.departureAirport = req.body.departureAirport.trim();
-    flight.departureDate = req.body.departureDate.trim();
-    flight.departureTime = req.body.departureTime.trim();
-    flight.arrivalCity = req.body.arrivalCity.trim();
-    flight.arrivalAirport = req.body.arrivalAirport.trim();
-    flight.arrivalDate = req.body.arrivalDate.trim();
-    flight.arrivalTime = req.body.arrivalTime.trim();
+    try {
+        const flightExists = db.prepare(
+            "SELECT id FROM Flight WHERE id = ?"
+        ).get(id);
 
-    flight.layoverCity = req.body.layoverCity?.trim() || null;
-    flight.layoverAirport = req.body.layoverAirport?.trim() || null;
-    flight.layoverDuration = req.body.layoverDuration?.trim() || null;
+        if (!flightExists) {
+            return res.status(404).json({
+                message: "Flight was not found"
+            });
+        }
 
-    return res.json(flight);
+        db.prepare(`
+            UPDATE Flight
+            SET
+                airline = ?,
+                flightNumber = ?,
+                departureCity = ?,
+                departureAirport = ?,
+                departureDate = ?,
+                departureTime = ?,
+                arrivalCity = ?,
+                arrivalAirport = ?,
+                arrivalDate = ?,
+                arrivalTime = ?,
+                layoverCity = ?,
+                layoverAirport = ?,
+                layoverDuration = ?
+            WHERE id = ?
+        `).run(
+            req.body.airline.trim(),
+            req.body.flightNumber.trim(),
+            req.body.departureCity.trim(),
+            req.body.departureAirport.trim(),
+            req.body.departureDate.trim(),
+            req.body.departureTime.trim(),
+            req.body.arrivalCity.trim(),
+            req.body.arrivalAirport.trim(),
+            req.body.arrivalDate.trim(),
+            req.body.arrivalTime.trim(),
+            req.body.layoverCity?.trim() || null,
+            req.body.layoverAirport?.trim() || null,
+            req.body.layoverDuration?.trim() || null,
+            id
+        );
+
+        const updatedFlight = db.prepare(
+            "SELECT * FROM Flight WHERE id = ?"
+        ).get(id);
+
+        return res.json(updatedFlight);
+    } catch (error) {
+        console.error("Error updating flight:", error);
+
+        return res.status(500).json({
+            message: "Could not update flight"
+        });
+    }
 });
 
-// delete flight
+// Delete a flight
 router.delete("/flights/:id", (req, res) => {
     const id = Number(req.params.id);
 
-    const index = flights.findIndex(
-        flight => flight.id === id
-    );
-
-    if (!Number.isInteger(id) || index === -1) {
-        return res.status(404).json({
-            message: "Flight was not found"
+    if (!Number.isInteger(id)) {
+        return res.status(400).json({
+            message: "Invalid flight ID"
         });
     }
 
-    const deletedFlight = flights.splice(index, 1)[0];
+    try {
+        const flight = db.prepare(
+            "SELECT * FROM Flight WHERE id = ?"
+        ).get(id);
 
-    return res.json({
-        message: "Flight info deleted successfully",
-        flight: deletedFlight
-    });
+        if (!flight) {
+            return res.status(404).json({
+                message: "Flight was not found"
+            });
+        }
+
+        db.prepare(
+            "DELETE FROM Flight WHERE id = ?"
+        ).run(id);
+
+        return res.json({
+            message: "Flight info deleted successfully",
+            flight
+        });
+    } catch (error) {
+        console.error("Error deleting flight:", error);
+
+        return res.status(500).json({
+            message: "Could not delete flight"
+        });
+    }
 });
 
 module.exports = router;

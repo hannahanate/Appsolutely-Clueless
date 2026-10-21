@@ -7,14 +7,19 @@ import {
     ActivityIndicator,
     Alert,
     StyleSheet,
+    View,
     } from "react-native";
 
-    import DateTimePicker from "@react-native-community/datetimepicker";
-    import {
+import DateTimePicker from "@react-native-community/datetimepicker";
+import {
         createTrip,
         getTrip,
         updateTrip
     } from "../services/tripservice";
+
+import { Picker } from "@react-native-picker/picker";
+import { Country, City } from "country-state-city";
+import DropDownPicker from "react-native-dropdown-picker";   
 
     // Näyttää päivämäärän muodossa DD.MM.YYYY - display date as DD.MM.YYYY
     function formatDisplayDate(date) {
@@ -40,7 +45,7 @@ import {
         return new Date(year, month - 1, day);
     }
 
-    export default function CreateTripScreen({ navigation, route }) {
+export default function CreateTripScreen({ navigation, route }) {
     const tripId = route.params?.tripId;
     const isEditing = tripId !== undefined && tripId !== null;
 
@@ -57,6 +62,32 @@ import {
     const [activePicker, setActivePicker] = useState(null);
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(isEditing);
+
+    const [countryOpen, setCountryOpen] = useState(false);
+    const [cityOpen, setCityOpen] = useState(false);
+
+    const [countryItems, setCountryItems] = useState(
+        Country.getAllCountries()
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((country) => ({
+            label: country.name,
+            value: country.isoCode,
+            }))
+    );
+
+    const [cityItems, setCityItems] = useState([]);
+    const [cityValue, setCityValue] = useState(null);
+
+    // Maa ja kaupunki dropdownit
+    const countries = Country.getAllCountries().sort((a, b) =>
+    a.name.localeCompare(b.name));
+
+    const selectedCountry = countries.find(
+    (country) => country.isoCode === destinationCountry);
+
+    const cities = selectedCountry
+    ? (City.getCitiesOfCountry(selectedCountry.isoCode) || []).sort((a, b) =>
+      a.name.localeCompare(b.name)) : [];
 
     // Haetaan olemassa olevan matkan tiedot muokkausta varten
     useEffect(() => {
@@ -196,23 +227,73 @@ import {
             onChangeText={setName}
         />
 
-        {/* Kohdekaupunki - destination city*/}
-        <Text style={styles.label}>Destination city</Text>
-        <TextInput
-            style={styles.input}
-            placeholder="e.g. Rome"
-            value={destinationCity}
-            onChangeText={setDestinationCity}
-        />
-
         {/* Kohdemaa - destination country */}
         <Text style={styles.label}>Destination country</Text>
-        <TextInput
-            style={styles.input}
-            placeholder="e.g. Italy"
-            value={destinationCountry}
-            onChangeText={setDestinationCountry}
+        <DropDownPicker
+            open={countryOpen}
+            value={
+            Country.getAllCountries().find(
+                (country) => country.name === destinationCountry
+            )?.isoCode || null
+            }
+            items={countryItems}
+            setOpen={setCountryOpen}
+            setItems={setCountryItems}
+            setValue={(callback) => {
+            const value = callback(destinationCountry || null);
+
+            const selected = Country.getAllCountries().find(
+                (country) => country.isoCode === value
+            );
+
+            setDestinationCountry(selected?.name || "");
+            setCityValue(null);
+
+            const newCities = selected
+                ? (City.getCitiesOfCountry(selected.isoCode) || [])
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((city, index) => ({
+                    label: city.name,
+                    value: `${city.name}-${index}`,
+                    cityName: city.name,
+                    }))
+                : [];
+
+            setCityItems(newCities);
+            }}
+            placeholder="Select a country"
+            listMode="MODAL"
+            searchable
+            searchPlaceholder="Search countries..."
+            style={styles.dropdown}
+            dropDownContainerStyle={styles.dropdownList}
         />
+
+        {/* Kohdekaupunki - destination city*/}
+        <Text style={styles.label}>Destination city</Text>
+        <DropDownPicker
+            open={cityOpen}
+            value={cityValue}
+            items={cityItems}
+            setOpen={setCityOpen}
+            setItems={setCityItems}
+            setValue={setCityValue}
+            onChangeValue={(value) => {
+                const selectedCity = cityItems.find(
+                (city) => city.value === value
+                );
+
+                setDestinationCity(selectedCity?.cityName || "");
+            }}
+            placeholder="Select a city"
+            listMode="MODAL"
+            searchable
+            searchPlaceholder="Search cities..."
+            disabled={!destinationCountry}
+            style={styles.dropdown}
+            dropDownContainerStyle={styles.dropdownList}
+        />
+
 
         {/* Lähtöpäivän valinta - pick start date */}
         <Text style={styles.label}>Start date</Text>
@@ -371,5 +452,15 @@ import {
         color: "#FFFFFF",
         fontSize: 16,
         fontWeight: "bold",
+    },
+    dropdown: {
+        borderColor: "#D1D5DB",
+        borderRadius: 10,
+        minHeight: 50,
+        marginBottom: 18,
+    },
+    dropdownList: {
+        borderColor: "#D1D5DB",
+        borderRadius: 10,
     },
 });

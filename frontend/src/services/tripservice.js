@@ -1,12 +1,13 @@
 //const LOCAL_API_URL =
     "https://appsolutelyclueless-afhnauf5cqc4bvek.francecentral-01.azurewebsites.net/api/trips";
 
-//Hannan lisäys - poista kommentti ennen palautusta
-//Eli kun haluut testata paikallista backendia, vaihda API_URL:ksi LOCAL_API_URL.
-//Azure tehdään erikseen jotenkin, aivot jumissa taas ei jaksa :D
 const AZURE_API_URL =
   "https://appsolutelyclueless-afhnauf5cqc4bvek.francecentral-01.azurewebsites.net/api";
-const LOCAL_API_URL = "http://192.168.50.25:3000/api";
+//HANNAN 
+  const LOCAL_API_URL = "http://192.168.0.202:3000/api";
+//NIINAN
+//const LOCAL_API_URL = "http://192.168.50.25:3000/api";
+
 
 // Change this to LOCAL_API_URL when you want to use the local backend.
 export const API_URL = LOCAL_API_URL;
@@ -89,4 +90,89 @@ export async function deleteTrip(id) {
   }
 
   return data;
+}
+
+
+ //get all expenses for a trip
+export async function getBudget(tripId) {
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/budget`
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to load budget");
+    }
+
+    return response.json();
+}
+
+//Add a new expense
+export async function addBudgetExpense(tripId, expense) {
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/budget`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(expense),
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to add expense");
+    }
+
+    return response.json();
+}
+
+//Delete an expense
+export async function deleteBudgetExpense(id) {
+    const response = await fetch(
+        `${API_URL}/budget/${id}`,
+        {
+            method: "DELETE",
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to delete expense");
+    }
+
+    return response.json();
+}
+
+//get the total budget for a trip
+export async function getTripBudget(tripId) {
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/total-budget`
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to load total budget");
+    }
+
+    return response.json();
+}
+
+//save the total budget for a trip
+export async function saveTripBudget(tripId, totalBudget) {
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/total-budget`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ totalBudget })
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to save total budget");
+    }
+
+    return response.json();
 }

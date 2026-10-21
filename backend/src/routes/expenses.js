@@ -156,4 +156,58 @@ router.delete("/budget/:id", (req,res) => {
         message: "Expense deleted"
     });
 });
+
+// Get the total budget for a trip
+router.get("/trips/:tripId/total-budget", (req, res) => {
+    const tripId = Number(req.params.tripId);
+
+    const trip = db.prepare(
+        "SELECT id, totalBudget FROM Trip WHERE id = ?"
+    ).get(tripId);
+
+    if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+    }
+
+    res.json({ totalBudget: trip.totalBudget });
+});
+
+//save the total budget for a trip
+router.put("/trips/:tripId/total-budget", (req, res) => {
+        const tripId = Number(req.params.tripId);
+        const rawBudget = req.body.totalBudget;
+
+        // Allow a comma as the decimal separator
+        const totalBudget = Number(
+            typeof rawBudget === "string"
+                ? rawBudget.replace(",", ".")
+                : rawBudget
+        );
+
+        if (
+            rawBudget === "" ||
+            rawBudget === null ||
+            rawBudget === undefined ||
+            !Number.isFinite(totalBudget) ||
+            totalBudget < 0
+        ) {
+            return res.status(400).json({
+                message: "Budget must be a valid non-negative number"
+            });
+        }
+
+        const trip = db.prepare(
+            "SELECT id FROM Trip WHERE id = ?"
+        ).get(tripId);
+
+        if (!trip) {
+            return res.status(404).json({ message: "Trip not found" });
+        }
+
+        db.prepare(
+            "UPDATE Trip SET totalBudget = ? WHERE id = ?"
+        ).run(totalBudget, tripId);
+
+        res.json({ totalBudget });
+});
 module.exports = router;
