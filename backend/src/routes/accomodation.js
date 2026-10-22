@@ -1,11 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
+const db = require("../database");
 
-const trips = require("../data/data");
-const accomodation = require("../data/accomodation");
-
-// Accomodation info
+// Accommodation info
 const requiredFields = [
     "name",
     "address",
@@ -27,7 +25,7 @@ function validateAccomodation(body) {
         }
     }
 
-    //optional info
+    // Optional info
     const optionalFields = [
         "bookingRef",
         "notes"
@@ -46,42 +44,54 @@ function validateAccomodation(body) {
     return null;
 }
 
-// getting accomodation info
+// Getting accommodation info
 router.get("/trips/:tripId/accomodation", (req, res) => {
     const tripId = Number(req.params.tripId);
 
-    const tripExists = trips.some(
-        trip => trip.id === tripId
-    );
+    if (!Number.isInteger(tripId) || tripId <= 0) {
+        return res.status(400).json({
+            message: "Invalid trip ID"
+        });
+    }
 
-    if (!Number.isInteger(tripId) || !tripExists) {
+    const trip = db.prepare(
+        "SELECT id FROM Trip WHERE id = ?"
+    ).get(tripId);
+
+    if (!trip) {
         return res.status(404).json({
             message: "Trip was not found"
         });
     }
 
-    const tripAccomodation = accomodation.filter(
-        accomodation => accomodation.tripId === tripId
-    );
+    const tripAccomodation = db.prepare(
+        "SELECT * FROM Accommodation WHERE tripId = ?"
+    ).all(tripId);
 
     return res.json(tripAccomodation);
 });
 
-// Add accomodation info to the trip
+// Add accommodation info to the trip
 router.post("/trips/:tripId/accomodation", (req, res) => {
     const tripId = Number(req.params.tripId);
 
-    const tripExists = trips.some(
-        trip => trip.id === tripId
-    );
+    if (!Number.isInteger(tripId) || tripId <= 0) {
+        return res.status(400).json({
+            message: "Invalid trip ID"
+        });
+    }
 
-    if (!Number.isInteger(tripId) || !tripExists) {
+    const trip = db.prepare(
+        "SELECT id FROM Trip WHERE id = ?"
+    ).get(tripId);
+
+    if (!trip) {
         return res.status(404).json({
             message: "Trip was not found"
         });
     }
 
-    // if validation fails
+    // If validation fails
     const validationError = validateAccomodation(req.body);
 
     if (validationError) {
@@ -91,8 +101,6 @@ router.post("/trips/:tripId/accomodation", (req, res) => {
     }
 
     const newAccomodation = {
-        id: accomodation.length + 1,
-
         tripId,
         name: req.body.name.trim(),
         address: req.body.address.trim(),
@@ -101,27 +109,61 @@ router.post("/trips/:tripId/accomodation", (req, res) => {
         checkOutDate: req.body.checkOutDate.trim(),
         checkInTime: req.body.checkInTime.trim(),
         checkOutTime: req.body.checkOutTime.trim(),
-
         bookingRef: req.body.bookingRef?.trim() || null,
         notes: req.body.notes?.trim() || null
     };
 
-    accomodation.push(newAccomodation);
+    const result = db.prepare(`
+        INSERT INTO Accommodation (
+            tripId,
+            name,
+            address,
+            city,
+            checkInDate,
+            checkOutDate,
+            checkInTime,
+            checkOutTime,
+            bookingRef,
+            notes
+        )
+        VALUES (
+            @tripId,
+            @name,
+            @address,
+            @city,
+            @checkInDate,
+            @checkOutDate,
+            @checkInTime,
+            @checkOutTime,
+            @bookingRef,
+            @notes
+        )
+    `).run(newAccomodation);
 
-    return res.status(201).json(newAccomodation);
+    const savedAccomodation = db.prepare(
+        "SELECT * FROM Accommodation WHERE id = ?"
+    ).get(Number(result.lastInsertRowid));
+
+    return res.status(201).json(savedAccomodation);
 });
 
-// edit accomodations info
+// Edit accommodation info
 router.put("/accomodation/:id", (req, res) => {
     const id = Number(req.params.id);
 
-    const foundAccomodation = accomodation.find(
-        accomodation => accomodation.id === id
-    );
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({
+            message: "Invalid accommodation ID"
+        });
+    }
 
-    if (!Number.isInteger(id) || !foundAccomodation) {
+    const foundAccomodation = db.prepare(
+        "SELECT * FROM Accommodation WHERE id = ?"
+    ).get(id);
+
+    if (!foundAccomodation) {
         return res.status(404).json({
-            message: "Áccomodation was not found"
+            message: "Accommodation was not found"
         });
     }
 
@@ -133,40 +175,67 @@ router.put("/accomodation/:id", (req, res) => {
         });
     }
 
-    foundAccomodation.name= req.body.name.trim(),
-    foundAccomodation.address= req.body.address.trim(),
-    foundAccomodation.city= req.body.city.trim(),
-    foundAccomodation.checkInDate= req.body.checkInDate.trim(),
-    foundAccomodation.checkOutDate= req.body.checkOutDate.trim(),
-    foundAccomodation.checkInTime= req.body.checkInTime.trim(),
-    foundAccomodation.checkOutTime= req.body.checkOutTime.trim(),
+    const updatedAccomodation = {
+        id,
+        name: req.body.name.trim(),
+        address: req.body.address.trim(),
+        city: req.body.city.trim(),
+        checkInDate: req.body.checkInDate.trim(),
+        checkOutDate: req.body.checkOutDate.trim(),
+        checkInTime: req.body.checkInTime.trim(),
+        checkOutTime: req.body.checkOutTime.trim(),
+        bookingRef: req.body.bookingRef?.trim() || null,
+        notes: req.body.notes?.trim() || null
+    };
 
-    foundAccomodation.bookingRef= req.body.bookingRef?.trim() || null,
-    foundAccomodation.notes= req.body.notes?.trim() || null
+    db.prepare(`
+        UPDATE Accommodation
+        SET name = @name,
+            address = @address,
+            city = @city,
+            checkInDate = @checkInDate,
+            checkOutDate = @checkOutDate,
+            checkInTime = @checkInTime,
+            checkOutTime = @checkOutTime,
+            bookingRef = @bookingRef,
+            notes = @notes
+        WHERE id = @id
+    `).run(updatedAccomodation);
 
-    return res.json(foundAccomodation);
+    const savedAccomodation = db.prepare(
+        "SELECT * FROM Accommodation WHERE id = ?"
+    ).get(id);
 
+    return res.json(savedAccomodation);
 });
 
-// delete accomodation info
+// Delete accommodation info
 router.delete("/accomodation/:id", (req, res) => {
     const id = Number(req.params.id);
 
-    const index = accomodation.findIndex(
-        accomodation => accomodation.id === id
-    );
-
-    if (!Number.isInteger(id) || index === -1) {
-        return res.status(404).json({
-            message: "Accomodation was not found"
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({
+            message: "Invalid accommodation ID"
         });
     }
 
-    const deletedAccomodation = accomodation.splice(index, 1)[0];
+    const foundAccomodation = db.prepare(
+        "SELECT * FROM Accommodation WHERE id = ?"
+    ).get(id);
+
+    if (!foundAccomodation) {
+        return res.status(404).json({
+            message: "Accommodation was not found"
+        });
+    }
+
+    db.prepare(
+        "DELETE FROM Accommodation WHERE id = ?"
+    ).run(id);
 
     return res.json({
-        message: "Accomodations info was deleted successfully",
-        accomodation: deletedAccomodation
+        message: "Accommodation info was deleted successfully",
+        accomodation: foundAccomodation
     });
 });
 

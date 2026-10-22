@@ -12,6 +12,7 @@ import PackingListScreen from "../screens/PackingListScreen";
 import ActivitiesScreen from "../screens/ActivitiesScreen";
 import FlightsScreen from "../screens/FlightsScreen";
 import BudgetScreen from "../screens/BudgetScreen";
+import AccommodationScreen from "../screens/AccommodationScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -72,6 +73,11 @@ function MainTabs() {
             name="Budget"
             component={BudgetScreen}
             options={{ title: "Budget" }}
+            />
+            <Stack.Screen
+            name="Accommodation"
+            component={AccommodationScreen}
+            options={{ title: "Accommodation" }}
             />
         </Stack.Navigator>
         </NavigationContainer>

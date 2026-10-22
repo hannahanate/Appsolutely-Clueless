@@ -205,7 +205,6 @@ export default function ActivitiesScreen({ route }) {
       <Text style={styles.label}>Time (optional)</Text>
       <TextInput
         style={styles.input}
-        placeholder="For example: 10:00"
         value={time}
         onChangeText={setTime}
       />
@@ -213,7 +212,6 @@ export default function ActivitiesScreen({ route }) {
       <Text style={styles.label}>Location (optional)</Text>
       <TextInput
         style={styles.input}
-        placeholder="For example: Rome"
         value={location}
         onChangeText={setLocation}
       />

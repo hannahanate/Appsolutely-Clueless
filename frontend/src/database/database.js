@@ -403,3 +403,4 @@ export async function updateBucketlistStatus(itemId, visited) {
     itemId
   );
 }
+

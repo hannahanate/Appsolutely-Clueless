@@ -176,3 +176,81 @@ export async function saveTripBudget(tripId, totalBudget) {
 
     return response.json();
 }
+
+//get accommodation info for a trip
+export async function getAccomodation(tripId) {
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/accomodation`
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to load accommodation info");
+    }
+
+    return response.json();
+}
+
+//add accommodation info to a trip
+export async function addAccomodation(tripId, accomodation) {
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/accomodation`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(accomodation),
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(
+            error.message || "Failed to add accommodation info"
+        );
+    }
+
+    return response.json();
+}
+
+//update existing accommodation info
+export async function updateAccomodation(id, accomodation) {
+    const response = await fetch(
+        `${API_URL}/accomodation/${id}`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(accomodation),
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(
+            error.message || "Failed to update accommodation info"
+        );
+    }
+
+    return response.json();
+}
+
+//delete accommodation info
+export async function deleteAccomodation(id) {
+    const response = await fetch(
+        `${API_URL}/accomodation/${id}`,
+        {
+            method: "DELETE",
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(
+            error.message || "Failed to delete accommodation info"
+        );
+    }
+
+    return response.json();
+}

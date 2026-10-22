@@ -277,71 +277,61 @@ export default function FlightsScreen({ route }) {
         {field(
           "Airline *",
           airline,
-          setAirline,
-          "For example: Finnair"
+          setAirline
         )}
 
         {field(
           "Flight number *",
           flightNumber,
-          setFlightNumber,
-          "For example: AY123"
+          setFlightNumber
         )}
 
         {field(
           "Departure city *",
           departureCity,
-          setDepartureCity,
-          "For example: Helsinki"
+          setDepartureCity
         )}
 
         {field(
           "Departure airport *",
           departureAirport,
-          setDepartureAirport,
-          "For example: HEL"
+          setDepartureAirport
         )}
 
         {field(
           "Departure date *",
           departureDate,
-          setDepartureDate,
-          "DD.MM.YYYY"
+          setDepartureDate
         )}
 
         {field(
           "Departure time *",
           departureTime,
-          setDepartureTime,
-          "HH:MM"
+          setDepartureTime
         )}
 
         {field(
           "Arrival city *",
           arrivalCity,
-          setArrivalCity,
-          "For example: Rome"
+          setArrivalCity
         )}
 
         {field(
           "Arrival airport *",
           arrivalAirport,
           setArrivalAirport,
-          "For example: FCO"
         )}
 
         {field(
           "Arrival date *",
           arrivalDate,
-          setArrivalDate,
-          "DD.MM.YYYY"
+          setArrivalDate
         )}
 
         {field(
           "Arrival time *",
           arrivalTime,
           setArrivalTime,
-          "HH:MM"
         )}
 
         <Text style={styles.sectionTitle}>
@@ -363,8 +353,7 @@ export default function FlightsScreen({ route }) {
         {field(
           "Layover duration",
           layoverDuration,
-          setLayoverDuration,
-          "For example: 2 hours"
+          setLayoverDuration
         )}
 
         <Pressable

@@ -82,6 +82,24 @@ if (!tripColumns.some((column) => column.name === "totalBudget")) {
     `);
 }
 
+//create a table for accommodation information belonging to a trip
+db.exec(`
+    CREATE TABLE IF NOT EXISTS Accommodation (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tripId INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        address TEXT NOT NULL,
+        city TEXT NOT NULL,
+        checkInDate TEXT NOT NULL,
+        checkOutDate TEXT NOT NULL,
+        checkInTime TEXT NOT NULL,
+        checkOutTime TEXT NOT NULL,
+        bookingRef TEXT,
+        notes TEXT,
+        FOREIGN KEY (tripId) REFERENCES Trip(id) ON DELETE CASCADE
+    );
+`);
+
 console.log("Connected to SQLite database:", dbPath);
 
 module.exports = db;

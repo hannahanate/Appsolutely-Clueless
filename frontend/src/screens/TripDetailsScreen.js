@@ -195,7 +195,7 @@ export default function TripDetailsScreen({ route, navigation }) {
             color="#7C3AED"
             backgroundColor="#F5F3FF"
             onPress={() =>
-              navigation.navigate("Flights", {
+               navigation.navigate("Flights", {
                 tripId: trip.id,
                 tripName: trip.name,
               })
@@ -207,7 +207,12 @@ export default function TripDetailsScreen({ route, navigation }) {
             icon="bed"
             color="#059669"
             backgroundColor="#ECFDF5"
-            onPress={() => {}}
+            onPress={() =>
+              navigation.navigate("Accommodation", {
+                tripId: trip.id,
+                tripName: trip.name,
+    })
+}
           />
 
           <FeatureCard
@@ -216,7 +221,7 @@ export default function TripDetailsScreen({ route, navigation }) {
             color="#EA580C"
             backgroundColor="#FFF7ED"
             onPress={() =>
-                navigation.navigate("Budget", {
+             navigation.navigate("Budget", {
                 tripId: trip.id,
                 tripName: trip.name,
                 })
