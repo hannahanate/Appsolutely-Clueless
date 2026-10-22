@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from "react";
 import {
   View,
@@ -12,7 +11,9 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { getTrip, deleteTrip } from "../services/tripservice";
+import { getTrip, deleteTrip, API_URL } from "../services/tripservice";
+
+const IMAGE_BASE_URL = API_URL.replace(/\/api$/, "");
 
 export default function TripDetailsScreen({ route, navigation }) {
   const { tripId } = route.params;
@@ -135,111 +136,121 @@ export default function TripDetailsScreen({ route, navigation }) {
         style={styles.scrollView}
         contentContainerStyle={styles.container}
       >
-        {/* Trip information */}
-        <Text style={styles.title}>{trip.name}</Text>
-
-        <View style={styles.infoRow}>
-          <Ionicons
-            name="location-outline"
-            size={19}
-            color="#64748B"
+        {trip.destinationPicture && (
+          <Image
+            source={{ uri: IMAGE_BASE_URL + trip.destinationPicture }}
+            style={styles.destinationPicture}
+            resizeMode="cover"
           />
-          <Text style={styles.destination}>
-            {[trip.destinationCity, trip.destinationCountry]
-              .filter(Boolean)
-              .join(", ")}
-          </Text>
-        </View>
+        )}
 
-        <View style={styles.infoRow}>
-          <Ionicons
-            name="calendar-outline"
-            size={19}
-            color="#64748B"
-          />
-          <Text style={styles.dateText}>
-            {trip.startDate} – {trip.endDate}
-          </Text>
-        </View>
+        <View style={styles.tripContent}>
+          {/* Trip information */}
+          <Text style={styles.title}>{trip.name}</Text>
 
-        {trip.bookingRef ? (
-          <View style={styles.bookingBox}>
-            <Text style={styles.bookingLabel}>
-              Booking reference
-            </Text>
-            <Text style={styles.bookingValue}>
-              {trip.bookingRef}
+          <View style={styles.infoRow}>
+            <Ionicons
+              name="location-outline"
+              size={19}
+              color="#64748B"
+            />
+            <Text style={styles.destination}>
+              {[trip.destinationCity, trip.destinationCountry]
+                .filter(Boolean)
+                .join(", ")}
             </Text>
           </View>
-        ) : null}
 
-        {/* Trip feature cards */}
+          <View style={styles.infoRow}>
+            <Ionicons
+              name="calendar-outline"
+              size={19}
+              color="#64748B"
+            />
+            <Text style={styles.dateText}>
+              {trip.startDate} – {trip.endDate}
+            </Text>
+          </View>
 
-        <View style={styles.featureGrid}>
-          <FeatureCard
-            title="Activities"
-            icon="calendar"
-            color="#2563EB"
-            backgroundColor="#EFF6FF"
-            onPress={() =>
-              navigation.navigate("Activities", {
-                tripId: trip.id,
-                tripName: trip.name,
-              })
-            }
-          />
+          {trip.bookingRef ? (
+            <View style={styles.bookingBox}>
+              <Text style={styles.bookingLabel}>
+                Booking reference
+              </Text>
+              <Text style={styles.bookingValue}>
+                {trip.bookingRef}
+              </Text>
+            </View>
+          ) : null}
 
-          <FeatureCard
-            title="Flights"
-            icon="airplane"
-            color="#7C3AED"
-            backgroundColor="#F5F3FF"
-            onPress={() =>
-               navigation.navigate("Flights", {
-                tripId: trip.id,
-                tripName: trip.name,
-              })
-            }
-          />
+          {/* Trip feature cards */}
 
-          <FeatureCard
-            title="Accommodation"
-            icon="bed"
-            color="#059669"
-            backgroundColor="#ECFDF5"
-            onPress={() =>
-              navigation.navigate("Accommodation", {
-                tripId: trip.id,
-                tripName: trip.name,
-    })
-}
-          />
-
-          <FeatureCard
-            title="Budget"
-            icon="wallet"
-            color="#EA580C"
-            backgroundColor="#FFF7ED"
-            onPress={() =>
-             navigation.navigate("Budget", {
-                tripId: trip.id,
-                tripName: trip.name,
+          <View style={styles.featureGrid}>
+            <FeatureCard
+              title="Activities"
+              icon="calendar"
+              color="#2563EB"
+              backgroundColor="#EFF6FF"
+              onPress={() =>
+                navigation.navigate("Activities", {
+                  tripId: trip.id,
+                  tripName: trip.name,
                 })
-            }
-          />
+              }
+            />
 
-          <FeatureCard
-            title="Packing list"
-            icon="briefcase"
-            color="#475569"
-            backgroundColor="#F1F5F9"
-            onPress={() =>
-              navigation.navigate("PackingList", {
-                tripId: trip.id,
-                tripName: trip.name,
-              })
-            }
-          />
+            <FeatureCard
+              title="Flights"
+              icon="airplane"
+              color="#7C3AED"
+              backgroundColor="#F5F3FF"
+              onPress={() =>
+                navigation.navigate("Flights", {
+                  tripId: trip.id,
+                  tripName: trip.name,
+                })
+              }
+            />
+
+            <FeatureCard
+              title="Accommodation"
+              icon="bed"
+              color="#059669"
+              backgroundColor="#ECFDF5"
+              onPress={() =>
+                navigation.navigate("Accommodation", {
+                  tripId: trip.id,
+                  tripName: trip.name,
+                })
+              }
+            />
+
+            <FeatureCard
+              title="Budget"
+              icon="wallet"
+              color="#EA580C"
+              backgroundColor="#FFF7ED"
+              onPress={() =>
+                navigation.navigate("Budget", {
+                  tripId: trip.id,
+                  tripName: trip.name,
+                })
+              }
+            />
+
+            <FeatureCard
+              title="Packing list"
+              icon="briefcase"
+              color="#475569"
+              backgroundColor="#F1F5F9"
+              onPress={() =>
+                navigation.navigate("PackingList", {
+                  tripId: trip.id,
+                  tripName: trip.name,
+                })
+              }
+            />
+          </View>
         </View>
       </ScrollView>
 
@@ -292,8 +303,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
+    paddingBottom: 40,
+  },
+  tripContent: {
     padding: 22,
-    paddingBottom: 28,
+  },
+  destinationPicture: {
+    width: "100%",
+    height: 160,
   },
   center: {
     flex: 1,
@@ -365,7 +382,7 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     width: "48%",
-    minHeight: 158,
+    minHeight: 125,
     padding: 14,
     borderRadius: 16,
     marginBottom: 0,
@@ -400,7 +417,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 22,
     paddingTop: 12,
-    paddingBottom: 16,
+    paddingBottom: 50,
     gap: 12,
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,

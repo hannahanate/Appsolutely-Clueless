@@ -2,6 +2,7 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Ionicons } from "@expo/vector-icons";
 
 import HomeScreen from "../screens/HomeScreen";
 import TripsScreen from "../screens/TripsScreen";
@@ -20,11 +21,25 @@ const Stack = createNativeStackNavigator();
 function MainTabs() {
     return (
         <Tab.Navigator
-        screenOptions={{
+        screenOptions={({ route }) => ({
             headerShown: false,
             tabBarActiveTintColor: "#2563EB",
             tabBarInactiveTintColor: "#6B7280",
-        }}
+            // Alanavigaation ikonit - Bottom navigation icons
+            tabBarIcon: ({ color, size }) => {
+                let iconName;
+
+                if (route.name === "Home") {
+                    iconName = "home";
+                } else if (route.name === "Trips") {
+                    iconName = "airplane";
+                } else if (route.name === "Diary") {
+                    iconName = "book-outline";
+                }
+
+                return <Ionicons name={iconName} size={size} color={color} />;
+            },
+        })}
         >
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Trips" component={TripsScreen} />
@@ -47,7 +62,7 @@ function MainTabs() {
             component={CreateTripScreen}
             options={({ route }) => ({
             title: route.params?.tripId ? "Edit Trip" : "New Trip",
-            })} 
+            })}
             />
             <Stack.Screen
             name="TripDetails"
